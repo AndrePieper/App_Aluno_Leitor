@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as CameraExpo from 'expo-camera';
+import { Camera } from 'expo-camera';
 import * as Location from 'expo-location';
 import moment from 'moment-timezone';
 import { useEffect, useRef, useState } from 'react';
@@ -14,19 +14,21 @@ export default function Leitor({ navigation }) {
   
 useEffect(() => {
   (async () => {
-    const { status } = await CameraExpo.requestCameraPermissionsAsync();
+    console.log('Solicitando permissão da câmera...');
+   const { status } = await Camera.requestCameraPermissionsAsync();
+
     setHasPermission(status === 'granted');
 
     const { status: locStatus } = await Location.requestForegroundPermissionsAsync();
+    console.log('Status da permissão de localização:', locStatus);
     if (locStatus !== 'granted') {
       Alert.alert('Permissão de localização negada');
       return;
     }
 
     const id = await AsyncStorage.getItem('@id_aluno');
-    setIdAluno(id);
-
     const savedToken = await AsyncStorage.getItem('@token');
+    setIdAluno(id);
     setToken(savedToken);
   })();
 }, []);
@@ -101,12 +103,14 @@ useEffect(() => {
 
   return (
     <View style={{ flex: 1 }}>
-     <CameraExpo.Camera
-  style={{ flex: 1 }}
+<Camera
+  style={StyleSheet.absoluteFillObject}
   ref={cameraRef}
   onBarCodeScanned={handleBarCodeScanned}
   barCodeScannerSettings={{ barCodeTypes: ['qr'] }}
 />
+
+
       <View style={styles.maskContainer}>
         <View style={styles.maskTop} />
         <View style={styles.maskCenter}>
