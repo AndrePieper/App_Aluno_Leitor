@@ -6,14 +6,41 @@ import moment from 'moment-timezone';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function Leitor({ navigation }) {
-  const [permission, requestPermission] = useCameraPermissions();
-  const [facing, setFacing] = useState('back');
+  const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
+  const cameraRef = useRef(null);
   const [idAluno, setIdAluno] = useState('');
   const [token, setToken] = useState('');
+  const [type, setType] = useState(Camera.Constants.Type.back);
+  const [facing, setFacing] = useState('back'); 
+  const [permission, requestPermission] = useCameraPermissions();
+
+    if (!permission) {
+    return <View />;
+  }
+
+  if (!permission.granted) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.message}>Precisamos de permissão para usar a câmera</Text>
+        <Button onPress={requestPermission} title="Conceder permissão" />
+      </View>
+    );
+  }
+
+  function toggleCameraFacing() {
+    setFacing((current) => (current === 'back' ? 'front' : 'back'));
+  }
+
+  function handleBarCodeScanned({ data, type }) {
+    Alert.alert('QR Code lido!', `Tipo: ${type}\nConteúdo: ${data}`);
+  }
 
   useEffect(() => {
     (async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(status === 'granted');
+
       const { status: locStatus } = await Location.requestForegroundPermissionsAsync();
       if (locStatus !== 'granted') {
         Alert.alert('Permissão de localização negada');
@@ -27,11 +54,7 @@ export default function Leitor({ navigation }) {
     })();
   }, []);
 
-  function toggleCameraFacing() {
-    setFacing((current) => (current === 'back' ? 'front' : 'back'));
-  }
-
-  const handleBarCodeScanned = async ({ data }) => {
+  const handleBarCodeScanned1 = async ({ data }) => {
     if (scanned) return;
     setScanned(true);
 
@@ -96,50 +119,51 @@ export default function Leitor({ navigation }) {
     }
   };
 
-  if (!permission) return <View />;
-  if (!permission.granted) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.message}>Precisamos de permissão para usar a câmera</Text>
-        <TouchableOpacity onPress={requestPermission} style={styles.botaoPadrao}>
-          <Text style={styles.botaoPadraoTexto}>Conceder permissão</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
+  
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.container}>
       <CameraView
-        style={StyleSheet.absoluteFillObject}
+        style={styles.camera}
         facing={facing}
         onBarCodeScanned={handleBarCodeScanned}
         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
       >
-
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
+            <Text style={styles.text}>Virar Câmera</Text>
+          </TouchableOpacity>
+        </View>
       </CameraView>
-
-      {/* Máscara e instrução */}
-      <View style={styles.maskContainer}>
-        <View style={styles.maskTop} />
-        <View style={styles.maskCenter}>
-          <View style={styles.maskSide} />
-          <View style={styles.scanArea} />
-          <View style={styles.maskSide} />
-        </View>
-        <View style={styles.maskBottom}>
-          <Text style={styles.instrucao}>Aponte para o QR Code</Text>
-        </View>
-      </View>
-
-      <TouchableOpacity style={styles.botaoPadrao} onPress={() => navigation.navigate('Home')}>
-        <Text style={styles.botaoPadraoTexto}>Voltar</Text>
-      </TouchableOpacity>
     </View>
   );
+  //   <View style={{ flex: 1 }}>
+  //     <Camera
+  //       style={StyleSheet.absoluteFillObject}
+  //       ref={cameraRef}
+  //       type={type}
+  //       onBarCodeScanned={handleBarCodeScanned}
+  //       barCodeScannerSettings={{ barCodeTypes: [Camera.Constants.BarCodeType.qr] }}
+  //     />
+      
+  //     {/* Máscara e instrução - mantenha seu estilo */}
+  //     <View style={styles.maskContainer}>
+  //       <View style={styles.maskTop} />
+  //       <View style={styles.maskCenter}>
+  //         <View style={styles.maskSide} />
+  //         <View style={styles.scanArea} />
+  //         <View style={styles.maskSide} />
+  //       </View>
+  //       <View style={styles.maskBottom}>
+  //         <Text style={styles.instrucao}>Aponte para o QR Code</Text>
+  //       </View>
+  //     </View>
+
+  //     <TouchableOpacity style={styles.botaoPadrao} onPress={() => navigation.navigate('Home')}>
+  //       <Text style={styles.botaoPadraoTexto}>Voltar</Text>
+  //     </TouchableOpacity>
+  //   </View>
+  // );
 }
-
-
 const styles = StyleSheet.create({
   maskContainer: {
     position: 'absolute',
@@ -189,28 +213,5 @@ const styles = StyleSheet.create({
   botaoPadraoTexto: {
     color: '#fff',
     fontSize: 18,
-  },
-    container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  camera: { flex: 1, width: '100%' },
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 40,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-  },
-  button: {
-    backgroundColor: '#00000080',
-    padding: 12,
-    borderRadius: 8,
-  },
-  text: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  message: {
-    fontSize: 18,
-    marginBottom: 20,
-    textAlign: 'center',
   },
 });
