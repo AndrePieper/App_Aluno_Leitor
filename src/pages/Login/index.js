@@ -14,6 +14,7 @@ export default function Login({ navigation }) {
   const [DadosLogin, setDadosLogin] = useState({ email: '', senha: '', imei: '' });
   const [carregando, setCarregando] = useState(false);
   const [tecladoVisivel, setTecladoVisivel] = useState(false);
+  const [mensagemErro, setMensagemErro] = useState('');
 
   useEffect(() => {
     const obterImei = () => {
@@ -21,6 +22,7 @@ export default function Login({ navigation }) {
       setDadosLogin((prev) => ({ ...prev, imei: imeiDispositivo }));
     };
     obterImei();
+    console.log(Device.osInternalBuildId)
 
     const MostrarTeclado = Keyboard.addListener('keyboardDidShow', () => setTecladoVisivel(true));
     const EsconderTeclado = Keyboard.addListener('keyboardDidHide', () => setTecladoVisivel(false));

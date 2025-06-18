@@ -49,13 +49,17 @@ export default function Cadastro({ navigation }) {
   function Texto_Input(input) {
     setDadosCadastro((prevValues) => ({
       ...prevValues,
-      [input.name]: input.value,
+      [input.name]: input.name === 'nome'
+        ? input.value.trimStart() // remove espaços só no início
+        : input.value,
     }));
   }
 
   async function Cadastrar() {
     const { nome, ra, email, senha, imei } = DadosCadastro;
-    if (nome && ra && email && senha && imei) {
+    const nomeTratado = nome?.trim(); // remove espaços no início e fim
+
+    if (nomeTratado && ra && email && senha && imei) {
       setCarregando(true);
       setMensagemErro('');
       setMensagemApi('');
@@ -64,7 +68,12 @@ export default function Cadastro({ navigation }) {
         const api_url = "https://projeto-iii-4.vercel.app/usuarios/valida";
         const headers = { 'Content-Type': 'application/json' };
 
-        const resposta = await axios.post(api_url, DadosCadastro, { headers: headers });
+        const dadosTratados = {
+          ...DadosCadastro,
+          nome: nomeTratado,
+        };
+
+        const resposta = await axios.post(api_url, dadosTratados, { headers: headers });
         setCarregando(false);
 
         setMensagemApi(resposta.data.message || 'Cadastro realizado com sucesso!');
@@ -115,7 +124,7 @@ export default function Cadastro({ navigation }) {
             name="email"
           />
 
-          <Text style={styles.label}>Senha (CPF)</Text>
+          <Text style={styles.label}>Senha</Text>
           <TextInput
             style={styles.input}
             onChangeText={(e) => Texto_Input({ name: "senha", value: e })}
@@ -167,16 +176,8 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 20,
   },
-
-  boxForm: {
-    marginBottom: 0,
-  },
-
-  label: {
-    color: "#000",
-    margin: 5,
-  },
-
+  boxForm: { marginBottom: 0 },
+  label: { color: "#000", margin: 5 },
   input: {
     backgroundColor: "#fff",
     color: "#737276",
@@ -186,19 +187,16 @@ const styles = StyleSheet.create({
     margin: 5,
     padding: 10,
   },
-
   erro: {
     color: 'red',
     textAlign: 'center',
     marginVertical: 10,
   },
-
   sucesso: {
     color: 'green',
     textAlign: 'center',
     marginVertical: 10,
   },
-
   botaoPadrao: {
     backgroundColor: "#00913D",
     alignItems: 'center',
@@ -209,17 +207,14 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 20,
   },
-
   botaoPadraoTexto: {
     color: "#fff",
     fontSize: 18,
   },
-
   carregar: {
     marginBottom: 10,
     marginTop: 10,
   },
-
   rodape: {
     position: 'absolute',
     flex: 0.1,
@@ -227,27 +222,23 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 25,
   },
-
   rodapeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 5,
   },
-
   rodapeLinha: {
     borderBottomWidth: 2,
     borderColor: "#000",
     width: '20%',
     marginHorizontal: 5,
   },
-
   rodapeTexto: {
     color: "#000",
     textAlign: "center",
     fontSize: 16,
   },
-
   linkCadastro: {
     color: '#0000FF',
     textAlign: 'center',

@@ -37,6 +37,7 @@
     "react-native-elements": "^3.4.3",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-image-picker": "^7.1.2",
+    "react-native-paper": "^5.14.5",
     "react-native-permissions": "^5.0.2",
     "react-native-qrcode": "^0.2.7",
     "react-native-qrcode-svg": "^6.3.12",
